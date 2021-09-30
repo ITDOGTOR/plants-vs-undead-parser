@@ -1,0 +1,22 @@
+* {
+  box-sizing: border-box;
+}
+
+p {
+  margin: 0;
+}
+
+.page {
+  width: 300px;
+  height: 100%;
+}
+
+.page__body {
+  margin: 0;
+  padding: 10px;
+  font-family: Arial, sans-serif;
+  font-size: 18px;
+  line-height: 110%;
+  text-align: center;
+  background-color: ghostwhite;
+}

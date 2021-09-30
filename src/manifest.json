@@ -1,1 +1,35 @@
-{}
+{
+  "manifest_version": 2,
+  "name": "Plants vs Undead parser",
+  "version": "2.0.0",
+  "description": "Parser game Plant vs Undead",
+  "icons": {
+    "128": "./img/icon-128.png"
+  },
+  "browser_action": {
+    "default_popup": "./popup.html",
+    "default_icon": {
+      "128": "./img/icon-128.png"
+    }
+  },
+  "permissions": [
+    "activeTab",
+    "tabs"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://marketplace.plantvsundead.com/*",
+        "http://rucaptcha.com/*"
+      ],
+      "js": [
+        "./contentScript.bundle.js"
+      ]
+    }
+  ],
+  "background": {
+    "page": "./background.html",
+    "persistent": true
+  }
+}
+

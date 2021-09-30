@@ -3,9 +3,13 @@
   "version": "2.0.0",
   "private": true,
   "description": "Wonderful parser NFT-garden game \"Plants vs Undead\"",
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 Firefox versions"
+  ],
   "scripts": {
     "build": "NODE_ENV=production BABEL_ENV=production node config/build.js",
-    "start": "NODE_ENV=development BABEL_ENV=development webpack serve --open --port 3000"
+    "start": "NODE_ENV=development BABEL_ENV=development node config/build.js"
   },
   "author": "",
   "license": "ISC",
@@ -20,6 +24,7 @@
     "file-loader": "6.2.0",
     "html-loader": "2.1.2",
     "html-webpack-plugin": "5.3.2",
+    "mini-css-extract-plugin": "2.3.0",
     "source-map-loader": "3.0.0",
     "style-loader": "3.3.0",
     "terser-webpack-plugin": "5.2.4",

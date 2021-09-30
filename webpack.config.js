@@ -5,11 +5,10 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const TerserWebpackPlugin = require('terser-webpack-plugin');
 const WebpackObfuscator = require('webpack-obfuscator');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 
 const env = require('./config/env');
-
-const fileExtensions = ['jpg', 'jpeg', 'png', 'svg', 'woff', 'woff2'];
 
 const options = {
   mode: env.NODE_ENV,
@@ -26,23 +25,13 @@ const options = {
   module: {
     rules: [
       {
-        test: /.css/,
-        use: [
+        test: /\.css$/,
+        rules: [
           {
-            loader: 'style-loader',
-          },
-          {
-            loader: 'css-loader',
+            test: /\.css$/i,
+            use: [MiniCssExtractPlugin.loader, 'css-loader'],
           },
         ],
-      },
-      {
-        test: new RegExp('.(' + fileExtensions.join('|') + ')$'),
-        loader: 'file-loader',
-        options: {
-          name: '[name].[ext]',
-        },
-        exclude: /node_modules/,
       },
       {
         test: /\.html$/,
@@ -92,7 +81,7 @@ const options = {
         },
       ],
     }),
-    /*new CopyWebpackPlugin({
+    new CopyWebpackPlugin({
       patterns: [
         {
           from: 'src/assets/img/icon-128.png',
@@ -100,12 +89,16 @@ const options = {
           force: true,
         },
       ],
-    }),*/
+    }),
     new HtmlWebpackPlugin({
       template: path.join(__dirname, 'src', 'pages', 'Popup', 'index.html'),
       filename: 'popup.html',
       chunks: ['popup'],
       cache: false,
+    }),
+    new MiniCssExtractPlugin({
+      filename: 'css/[name].[contenthash:5].css',
+      chunkFilename: 'css/[name].[contenthash:5].css',
     }),
     new HtmlWebpackPlugin({
       template: path.join(__dirname, 'src', 'pages', 'Background', 'index.html'),
