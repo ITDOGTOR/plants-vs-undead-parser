@@ -49,6 +49,10 @@ export default class ApiService {
     return await this._getResource('/farms');
   };
 
+  getFarmingStats = async () => {
+    return await this._getResource('/farming-stats');
+  };
+
   getMySunflowers = async () => {
     return await this._getResource('/my-sunflowers');
   };
@@ -96,6 +100,10 @@ export default class ApiService {
 
     return await this._postResource('/farms/apply-tool', bodyData);
   };
+
+  /*  harvestAllPlant = async () => {
+      return await this._postResource('/harvest-all');
+    };*/
 
   harvestPlant = async (plantId) => {
     return await this._postResource(`/farms/${plantId}/harvest`);

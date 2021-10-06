@@ -15,6 +15,7 @@ export const Tool = {
 };
 
 export const PlantStage = {
+  NEW: 'new',
   FARMING: 'farming',
   PAUSED: 'paused',
   CANCELLED: 'cancelled',

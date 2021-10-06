@@ -1,5 +1,5 @@
 import ApiService from './api';
-import {sleep} from './utils';
+import {getCost, sleep} from './utils';
 import {
   DEFAULT_COUNT_WATER,
   Duration,
@@ -34,33 +34,44 @@ export const parseWorldTree = async () => {
 
 export const parsePlants = async () => {
   const {data} = await apiService.getFarms();
+  const {data: {leWallet}} = await apiService.getFarmingStats();
+
+  let plantsCount = data.length;
+
+  if (plantsCount) {
+    const {recent, paused, cancelled, lackWater} = getPlantsCategory(data);
+
+    for (const {_id: plantId} of recent) {
+      await makeFarmingPlant(plantId);
+    }
+
+    for (const {_id: plantId} of paused) {
+      await sleep(() => applyToolPlant(plantId, Tool.ANTI_CROW), Duration.APPLY_TOOL);
+    }
+
+    for (const {_id: plantId, plant: {sunflowerId}} of cancelled) {
+      await apiService.harvestPlant(plantId);
+      sunflowerId && await apiService.deletePlant(plantId);
+    }
+
+    for (const {countWater, _id: plantId} of lackWater) {
+      for (const value of Array.from(Array(DEFAULT_COUNT_WATER - countWater), (val, idx) => idx)) {
+        await sleep(() => applyToolPlant(plantId, Tool.WATER), Duration.APPLY_TOOL);
+      }
+    }
+  }
 
   const isMother = data.some(({plantType}) => plantType === PlantType.MOTHER);
-  const plantsCount = data.length;
+  const differencePlants = MAX_COUNT_PLANTS - plantsCount;
 
-  if (plantsCount !== MAX_COUNT_PLANTS) {
-    !isMother && await sowPlant(PlantType.MOTHER);
+  if (!isMother && leWallet > getCost(isMother, differencePlants)) {
+    await sowPlant(PlantType.MOTHER);
+    plantsCount += 1;
+  }
 
-    for (const item of Array.from(Array(MAX_COUNT_PLANTS - plantsCount), (val, idx) => idx)) {
+  if (plantsCount !== MAX_COUNT_PLANTS && leWallet > getCost(isMother, differencePlants)) {
+    for (const item of Array.from(Array(differencePlants), (val, idx) => idx)) {
       await sowPlant(PlantType.CHILD);
-    }
-    return;
-  }
-
-  const {paused, cancelled, lackWater} = getPlantsCategory(data);
-
-  for (const {_id: plantId} of paused) {
-    await sleep(() => applyToolPlant(plantId, Tool.ANTI_CROW), Duration.APPLY_TOOL);
-  }
-
-  for (const {_id: plantId} of cancelled) {
-    await apiService.harvestPlant(plantId);
-    await apiService.deletePlant(plantId);
-  }
-
-  for (const {countWater, _id: plantId} of lackWater) {
-    for (const value of Array.from(Array(DEFAULT_COUNT_WATER - countWater), (val, idx) => idx)) {
-      await sleep(() => applyToolPlant(plantId, Tool.WATER), Duration.APPLY_TOOL);
     }
   }
 };
@@ -77,6 +88,10 @@ const sowPlant = async (plantType) => {
   }
 
   const {data: {_id: plantId}} = await apiService.plantInGround(plantType);
+  await makeFarmingPlant(plantId);
+};
+
+const makeFarmingPlant = async (plantId) => {
   await sleep(() => applyToolPlant(plantId, Tool.POT), Duration.APPLY_TOOL);
   await sleep(() => applyToolPlant(plantId, Tool.WATER), Duration.APPLY_TOOL);
   await sleep(() => applyToolPlant(plantId, Tool.WATER), Duration.APPLY_TOOL);
@@ -129,6 +144,11 @@ const getPlantsCategory = (plants) => {
     const {stage, activeTools} = cur;
     const currentCountWater = activeTools.filter(({type}) => type === 'WATER')[0]?.count || 0;
 
+    if (stage === PlantStage.NEW) {
+      acc.recent.push(cur);
+      return acc;
+    }
+
     if (stage === PlantStage.CANCELLED) {
       acc.cancelled.push(cur);
       return acc;
@@ -145,5 +165,5 @@ const getPlantsCategory = (plants) => {
     }
 
     return acc;
-  }, {paused: [], cancelled: [], lackWater: []});
+  }, {recent: [], paused: [], cancelled: [], lackWater: []});
 };
